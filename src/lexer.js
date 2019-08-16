@@ -7,7 +7,7 @@ class Token {
     }
 
     toString() {
-        return type + " " + lexeme + " " + literal;
+        return this.type + " " + this.lexeme + " " + this.literal;
     }
 }
 
@@ -194,4 +194,4 @@ const lex = source => {
     return tokens;
 };
 
-export default lex;
+module.exports = lex;

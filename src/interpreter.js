@@ -3,6 +3,7 @@ const prompt = require("prompt");
 
 const lex = require("./lexer");
 const parse = require("./parser");
+const evaluate = require("./evaluator");
 
 const runFile = filePath => {
     fs.read(filePath, (err, data) => {
@@ -14,7 +15,9 @@ const runPrompt = () => {
     prompt.start();
     prompt.get(["code"], function(err, { code }) {
         const tokens = lex(code);
-        console.log(parse(tokens));
+        const ast = parse(tokens);
+
+        console.log(evaluate(ast));
         runPrompt();
     });
 };

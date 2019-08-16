@@ -1,35 +1,4 @@
-class Expr {}
-
-class Binary extends Expr {
-    constructor(left, operator, right) {
-        super();
-        this.left = left;
-        this.operator = operator;
-        this.right = right;
-    }
-}
-
-class Grouping extends Expr {
-    constructor(expression) {
-        super();
-        this.expression = expression;
-    }
-}
-
-class Literal extends Expr {
-    constructor(value) {
-        super();
-        this.value = value;
-    }
-}
-
-class Unary extends Expr {
-    constructor(operator, right) {
-        super();
-        this.operator = operator;
-        this.right = right;
-    }
-}
+const { Expr, Binary, Grouping, Literal, Unary } = require("./ast-types");
 
 const parse = tokens => {
     let current = 0;
@@ -62,8 +31,6 @@ const parse = tokens => {
             expr = new Binary(expr, op, right);
         }
 
-        // console.log("eq", expr);
-
         return expr;
     };
 
@@ -75,8 +42,6 @@ const parse = tokens => {
             const right = addition();
             expr = new Binary(expr, op, right);
         }
-
-        // console.log("comp", expr);
 
         return expr;
     };
@@ -90,8 +55,6 @@ const parse = tokens => {
             expr = new Binary(expr, op, right);
         }
 
-        // console.log("add", expr);
-
         return expr;
     };
 
@@ -103,8 +66,6 @@ const parse = tokens => {
             const right = unary();
             expr = new Binary(expr, op, right);
         }
-
-        //console.log("mult", expr);
 
         return expr;
     };
@@ -134,7 +95,7 @@ const parse = tokens => {
         if (match(["NIL"])) return new Literal(null);
 
         if (match(["NUMBER", "STRING"])) {
-            return new Literal(tokens[current - 1].lexeme);
+            return new Literal(tokens[current - 1].literal);
         }
 
         if (match("LEFT_PAREN")) {
@@ -147,4 +108,4 @@ const parse = tokens => {
     return expression();
 };
 
-export default parse;
+module.exports = parse;
