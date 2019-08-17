@@ -31,10 +31,29 @@ class Unary extends Expr {
     }
 }
 
+class Stmt {}
+
+class Print extends Stmt {
+    constructor(expr) {
+        super();
+        this.expr = expr;
+    }
+}
+
+class Expression extends Stmt {
+    constructor(expr) {
+        super();
+        this.expr = expr;
+    }
+}
+
 module.exports = {
     Expr,
     Binary,
     Grouping,
     Literal,
-    Unary
+    Unary,
+    Stmt,
+    Print,
+    Expression
 };

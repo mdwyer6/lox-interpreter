@@ -1,4 +1,26 @@
-const { Expr, Binary, Grouping, Literal, Unary } = require("./ast-types");
+const {
+    Expr,
+    Binary,
+    Grouping,
+    Literal,
+    Unary,
+    Statement,
+    Print,
+    Expression
+} = require("./ast-types");
+
+const throwAfterN = n => {
+    let calls = 0;
+    return () => {
+        calls++;
+        if (calls === n) {
+            process.exit(0);
+            //throw new Error();
+        }
+    };
+};
+
+const throwAfter5 = throwAfterN(5);
 
 const parse = tokens => {
     let current = 0;
@@ -18,6 +40,40 @@ const parse = tokens => {
         }
 
         return false;
+    };
+
+    const consume = (tokenType, errorMessage) => {
+        if (current === tokens.length) {
+            throw Error(errorMessage);
+        }
+        while (!tokens[current] || tokens[current].type !== tokenType) {
+            current++;
+            if (current === tokens.length) {
+                throw Error(errorMessage);
+            }
+        }
+    };
+
+    const statement = () => {
+        if (match("print")) {
+            return printStatement();
+        }
+
+        return exprStatement();
+    };
+
+    const printStatement = () => {
+        let expr = expression();
+        consume("SEMICOLON", "Expect ';' after value.");
+        return new Print(expr);
+    };
+
+    const exprStatement = () => {
+        let expr = expression();
+
+        consume("SEMICOLON", "Expect ';' after value.");
+        throwAfter5();
+        return new Expression(expr);
     };
 
     const expression = () => equality();
@@ -81,15 +137,6 @@ const parse = tokens => {
     };
 
     const primary = () => {
-        const consume = (tokenType, errorMessage) => {
-            while (tokens[current] !== tokenType) {
-                current++;
-                if (current === tokens.length) {
-                    throw Error(errorMessage);
-                }
-            }
-        };
-
         if (match(["FALSE"])) return new Literal(false);
         if (match(["TRUE"])) return new Literal(true);
         if (match(["NIL"])) return new Literal(null);
@@ -105,7 +152,13 @@ const parse = tokens => {
         }
     };
 
-    return expression();
+    const statements = [];
+
+    while (current + 1 !== tokens.length) {
+        statements.push(statement());
+    }
+
+    return statements;
 };
 
 module.exports = parse;
