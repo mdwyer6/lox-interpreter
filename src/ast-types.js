@@ -50,10 +50,10 @@ class Expression extends Stmt {
 }
 
 class VarDecl extends Declaration {
-    constructor(identifier, value) {
+    constructor(name, initializer) {
         super();
-        this.identifier = identifier;
-        this.value = value;
+        this.name = name;
+        this.initializer = initializer;
     }
 }
 

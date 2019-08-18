@@ -17,6 +17,8 @@ const runPrompt = () => {
         const tokens = lex(code);
         const statements = parse(tokens);
 
+        console.log(statements);
+
         evaluate(statements);
         runPrompt();
     });

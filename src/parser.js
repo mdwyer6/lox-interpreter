@@ -68,9 +68,13 @@ const parse = tokens => {
     const varDecl = () => {
         const currentToken = tokens[current];
         if (match("IDENTIFIER")) {
-            consume("EQUAL", "expected '=' in variable declaration");
+            let expr = null;
+            if (match("EQUAL")) {
+                expr = expression();
+            }
 
-            return new VarDecl(currentToken, tokens[current]);
+            consume("SEMICOLON", "Expected semicolon after declaration");
+            return new VarDecl(currentToken, expr);
         }
 
         throw new Error("expecte identifier after 'var'");
@@ -172,12 +176,16 @@ const parse = tokens => {
             consume("RIGHT_PAREN", "Expect ')' after expression.");
             return new Grouping(expr);
         }
+
+        //if (match("IDEN"))
     };
 
     const declarations = [];
 
-    while (current !== tokens.length) {
+    while (current < tokens.length) {
         declarations.push(declaration());
+        console.log("tokens len", tokens.length);
+        console.log("cursor", current);
     }
 
     return declarations;
