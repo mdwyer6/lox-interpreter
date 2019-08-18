@@ -31,6 +31,8 @@ class Unary extends Expr {
     }
 }
 
+class Declaration {}
+
 class Stmt {}
 
 class Print extends Stmt {
@@ -47,6 +49,14 @@ class Expression extends Stmt {
     }
 }
 
+class VarDecl extends Declaration {
+    constructor(identifier, value) {
+        super();
+        this.identifier = identifier;
+        this.value = value;
+    }
+}
+
 module.exports = {
     Expr,
     Binary,
@@ -55,5 +65,6 @@ module.exports = {
     Unary,
     Stmt,
     Print,
-    Expression
+    Expression,
+    VarDecl
 };

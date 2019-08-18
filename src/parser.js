@@ -6,7 +6,9 @@ const {
     Unary,
     Statement,
     Print,
-    Expression
+    Expression,
+    Declaration,
+    VarDecl
 } = require("./ast-types");
 
 const throwAfterN = n => {
@@ -46,12 +48,32 @@ const parse = tokens => {
         if (current === tokens.length) {
             throw Error(errorMessage);
         }
-        while (!tokens[current] || tokens[current].type !== tokenType) {
+
+        while (!tokens[current - 1] || tokens[current - 1].type !== tokenType) {
             current++;
-            if (current === tokens.length) {
+            if (current - 1 === tokens.length) {
                 throw Error(errorMessage);
             }
         }
+    };
+
+    const declaration = () => {
+        if (match("var")) {
+            return varDecl();
+        }
+
+        return statement();
+    };
+
+    const varDecl = () => {
+        const currentToken = tokens[current];
+        if (match("IDENTIFIER")) {
+            consume("EQUAL", "expected '=' in variable declaration");
+
+            return new VarDecl(currentToken, tokens[current]);
+        }
+
+        throw new Error("expecte identifier after 'var'");
     };
 
     const statement = () => {
@@ -152,13 +174,13 @@ const parse = tokens => {
         }
     };
 
-    const statements = [];
+    const declarations = [];
 
-    while (current + 1 !== tokens.length) {
-        statements.push(statement());
+    while (current !== tokens.length) {
+        declarations.push(declaration());
     }
 
-    return statements;
+    return declarations;
 };
 
 module.exports = parse;
