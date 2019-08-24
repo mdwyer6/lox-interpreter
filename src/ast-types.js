@@ -64,6 +64,13 @@ class Expression extends Stmt {
     }
 }
 
+class Block extends Stmt {
+    constructor(declarations) {
+        super();
+        this.declarations = declarations;
+    }
+}
+
 class VarDecl extends Declaration {
     constructor(name, initializer) {
         super();
@@ -83,5 +90,6 @@ module.exports = {
     Expression,
     VarDecl,
     VarExpr,
+    Block,
     Assign
 };

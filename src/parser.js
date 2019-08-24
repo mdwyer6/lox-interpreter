@@ -10,6 +10,7 @@ const {
     Declaration,
     VarDecl,
     VarExpr,
+    Block,
     Assign
 } = require("./ast-types");
 
@@ -87,7 +88,21 @@ const parse = tokens => {
             return printStatement();
         }
 
+        if (match("LEFT_BRACE")) {
+            return blockStatement();
+        }
+
         return exprStatement();
+    };
+
+    const blockStatement = () => {
+        let declarationsInBlock = [];
+
+        while (!match("RIGHT_BRACE") && current < tokens.length) {
+            declarationsInBlock.push(declaration());
+        }
+
+        return new Block(declarationsInBlock);
     };
 
     const printStatement = () => {

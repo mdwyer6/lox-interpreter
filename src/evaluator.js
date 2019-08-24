@@ -8,16 +8,17 @@ const {
     Expression,
     VarDecl,
     VarExpr,
+    Block,
     Assign
 } = require("./ast-types");
 
 class Env {
-    constructor(initEnv) {
-        this.envChain = [initEnv];
+    constructor(initEnvChain = [{}]) {
+        this.envChain = initEnvChain;
     }
 
     nextEnv() {
-        this.envChain.push({});
+        return new Env(this.envChain.concat({}));
     }
 
     get(key) {
@@ -99,9 +100,15 @@ const execute = (ast, env) => {
 
         throw new Error(`Tried to assign to undeclared variable ${lexeme}`);
     }
+
+    if (ast instanceof Block) {
+        const subEnv = env.nextEnv();
+
+        ast.declarations.forEach(d => execute(d, subEnv));
+    }
 };
 
-const globalEnv = new Env({});
+const globalEnv = new Env();
 const evaluate = statements => statements.forEach(s => execute(s, globalEnv));
 
 module.exports = evaluate;
