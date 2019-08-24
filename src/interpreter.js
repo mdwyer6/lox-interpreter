@@ -6,8 +6,8 @@ const parse = require("./parser");
 const evaluate = require("./evaluator");
 
 const runFile = filePath => {
-    fs.read(filePath, (err, data) => {
-        run(data);
+    fs.readFile(filePath, (err, data) => {
+        run(data.toString());
     });
 };
 
@@ -24,7 +24,14 @@ const runPrompt = () => {
     });
 };
 
-const run = source => {};
+const run = source => {
+    const tokens = lex(source);
+    const statements = parse(tokens);
+
+    console.log(statements);
+
+    evaluate(statements);
+};
 
 const main = filePath => {
     if (filePath) {
@@ -34,4 +41,4 @@ const main = filePath => {
     }
 };
 
-main();
+main(process.argv[2]);

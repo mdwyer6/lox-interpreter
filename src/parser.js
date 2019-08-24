@@ -8,7 +8,9 @@ const {
     Print,
     Expression,
     Declaration,
-    VarDecl
+    VarDecl,
+    VarExpr,
+    Assign
 } = require("./ast-types");
 
 const throwAfterN = n => {
@@ -77,7 +79,7 @@ const parse = tokens => {
             return new VarDecl(currentToken, expr);
         }
 
-        throw new Error("expecte identifier after 'var'");
+        throw new Error("expected identifier after 'var'");
     };
 
     const statement = () => {
@@ -102,7 +104,23 @@ const parse = tokens => {
         return new Expression(expr);
     };
 
-    const expression = () => equality();
+    const expression = () => assignment();
+
+    const assignment = () => {
+        const eq = equality();
+
+        if (match("EQUAL")) {
+            const right = assignment();
+
+            if (eq instanceof VarExpr) {
+                return new Assign(eq.identifier, right);
+            }
+
+            throw new Error("left side of assignment not valid");
+        }
+
+        return eq;
+    };
 
     const equality = () => {
         let expr = comparison();
@@ -177,15 +195,15 @@ const parse = tokens => {
             return new Grouping(expr);
         }
 
-        //if (match("IDEN"))
+        if (match("IDENTIFIER")) {
+            return new VarExpr(tokens[current - 1]);
+        }
     };
 
     const declarations = [];
 
     while (current < tokens.length) {
         declarations.push(declaration());
-        console.log("tokens len", tokens.length);
-        console.log("cursor", current);
     }
 
     return declarations;

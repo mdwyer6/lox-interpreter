@@ -5,17 +5,41 @@ const {
     Literal,
     Unary,
     Print,
-    Expression
+    Expression,
+    VarDecl,
+    VarExpr,
+    Assign
 } = require("./ast-types");
 
-const execute = ast => {
+class Env {
+    constructor(initEnv) {
+        this.envChain = [initEnv];
+    }
+
+    nextEnv() {
+        this.envChain.push({});
+    }
+
+    get(key) {
+        for (let i = this.envChain.length; i >= 0; i--) {
+            const val = this.envChain[key];
+            if (val) {
+                return val;
+            }
+        }
+
+        return;
+    }
+}
+
+const execute = (ast, env) => {
     if (ast instanceof Print) {
-        console.log(execute(ast.expr));
+        console.log(execute(ast.expr, env));
         return null;
     }
 
     if (ast instanceof Expression) {
-        execute(ast.expr);
+        execute(ast.expr, env);
         return null;
     }
 
@@ -29,7 +53,7 @@ const execute = ast => {
             BANG: a => !Boolean(a)
         };
 
-        return operatorMap[ast.operator.type](execute(ast.right));
+        return operatorMap[ast.operator.type](execute(ast.right, env));
     }
 
     if (ast instanceof Binary) {
@@ -43,12 +67,41 @@ const execute = ast => {
         };
 
         return operatorMap[ast.operator.type](
-            execute(ast.left),
-            execute(ast.right)
+            execute(ast.left, env),
+            execute(ast.right, env)
         );
+    }
+
+    if (ast instanceof VarDecl) {
+        if (ast.initializer) {
+            env[ast.name.lexeme] = execute(ast.initializer, env);
+        } else {
+            env[ast.name.lexeme] = "nil";
+        }
+
+        return null;
+    }
+
+    if (ast instanceof VarExpr) {
+        const value = env[ast.identifier.lexeme];
+        if (value !== undefined) {
+            return value;
+        }
+        throw new Error("Accessed undeclared variable");
+    }
+
+    if (ast instanceof Assign) {
+        const lexeme = ast.name.lexeme;
+        if (env[lexeme]) {
+            env[lexeme] = execute(ast.value, env);
+            return;
+        }
+
+        throw new Error(`Tried to assign to undeclared variable ${lexeme}`);
     }
 };
 
-const evaluate = statements => statements.forEach(execute);
+const globalEnv = new Env({});
+const evaluate = statements => statements.forEach(s => execute(s, globalEnv));
 
 module.exports = evaluate;

@@ -31,6 +31,21 @@ class Unary extends Expr {
     }
 }
 
+class VarExpr extends Expr {
+    constructor(identifier) {
+        super();
+        this.identifier = identifier;
+    }
+}
+
+class Assign extends Expr {
+    constructor(name, value) {
+        super();
+        this.name = name;
+        this.value = value;
+    }
+}
+
 class Declaration {}
 
 class Stmt {}
@@ -66,5 +81,7 @@ module.exports = {
     Stmt,
     Print,
     Expression,
-    VarDecl
+    VarDecl,
+    VarExpr,
+    Assign
 };
