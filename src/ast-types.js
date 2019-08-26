@@ -71,6 +71,33 @@ class Block extends Stmt {
     }
 }
 
+class If extends Stmt {
+    constructor(condition, thenBranch, elseBranch) {
+        super();
+        this.condition = condition;
+        this.thenBranch = thenBranch;
+        this.elseBranch = elseBranch;
+    }
+}
+
+class For extends Stmt {
+    constructor(initializer, conditional, iterator, block) {
+        super();
+        this.initializer = initializer;
+        this.conditional = conditional;
+        this.iterator = iterator;
+        this.block = block;
+    }
+}
+
+class While extends Stmt {
+    constructor(conditional, declarations) {
+        super();
+        this.conditional = conditional;
+        this.declarations = declarations;
+    }
+}
+
 class VarDecl extends Declaration {
     constructor(name, initializer) {
         super();
@@ -91,5 +118,8 @@ module.exports = {
     VarDecl,
     VarExpr,
     Block,
-    Assign
+    Assign,
+    If,
+    For,
+    While
 };

@@ -99,6 +99,7 @@ const lex = source => {
         while (isAlphaNumeric(peek())) current++;
 
         const currentToken = source.slice(start, current + 1);
+
         if (reservedWords.has(currentToken)) {
             return currentToken;
         }

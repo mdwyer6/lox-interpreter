@@ -11,7 +11,10 @@ const {
     VarDecl,
     VarExpr,
     Block,
-    Assign
+    Assign,
+    If,
+    For,
+    While
 } = require("./ast-types");
 
 const throwAfterN = n => {
@@ -92,6 +95,18 @@ const parse = tokens => {
             return blockStatement();
         }
 
+        if (match("if")) {
+            return ifStatement();
+        }
+
+        if (match("for")) {
+            return forStatement();
+        }
+
+        if (match("while")) {
+            return whileStatement();
+        }
+
         return exprStatement();
     };
 
@@ -99,7 +114,8 @@ const parse = tokens => {
         let declarationsInBlock = [];
 
         while (!match("RIGHT_BRACE") && current < tokens.length) {
-            declarationsInBlock.push(declaration());
+            let decl = declaration();
+            declarationsInBlock.push(decl);
         }
 
         return new Block(declarationsInBlock);
@@ -109,6 +125,54 @@ const parse = tokens => {
         let expr = expression();
         consume("SEMICOLON", "Expect ';' after value.");
         return new Print(expr);
+    };
+
+    const ifStatement = () => {
+        consume("LEFT_PAREN", "NO left paren found");
+
+        const conditional = expression();
+        consume("RIGHT_PAREN", "NO right paren found");
+        consume("LEFT_BRACE", "expecting body of conditional");
+
+        const thenBranch = blockStatement();
+
+        let elseBranch = null;
+
+        if (match("else")) {
+            elseBranch = blockStatement();
+        }
+
+        return new If(conditional, thenBranch, elseBranch);
+    };
+
+    const forStatement = () => {
+        consume("LEFT_PAREN", "NO left paren found");
+
+        const initializer = declaration();
+        const conditional = exprStatement();
+        const iterator = expression();
+
+        consume("LEFT_BRACE", "expected block after for loop construct");
+
+        const block = blockStatement();
+
+        return new For(initializer, conditional, iterator, block);
+    };
+
+    const whileStatement = () => {
+        consume("LEFT_PAREN", "NO left paren found");
+
+        const conditional = expression();
+
+        consume("LEFT_BRACE", "expected block after for loop construct");
+        let declarationsInBlock = [];
+
+        while (!match("RIGHT_BRACE") && current < tokens.length) {
+            let decl = declaration();
+            declarationsInBlock.push(decl);
+        }
+
+        return new While(conditional, declarationsInBlock);
     };
 
     const exprStatement = () => {
@@ -152,7 +216,7 @@ const parse = tokens => {
     const comparison = () => {
         let expr = addition();
 
-        while (match([">", ">=", "<", "<="])) {
+        while (match(["LESS", "LESS_EQUAL", "GREATER", "GREATER_EQUAL"])) {
             const op = tokens[current - 1];
             const right = addition();
             expr = new Binary(expr, op, right);
@@ -196,8 +260,8 @@ const parse = tokens => {
     };
 
     const primary = () => {
-        if (match(["FALSE"])) return new Literal(false);
-        if (match(["TRUE"])) return new Literal(true);
+        if (match(["false"])) return new Literal(false);
+        if (match(["true"])) return new Literal(true);
         if (match(["NIL"])) return new Literal(null);
 
         if (match(["NUMBER", "STRING"])) {

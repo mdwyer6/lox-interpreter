@@ -9,7 +9,10 @@ const {
     VarDecl,
     VarExpr,
     Block,
-    Assign
+    Assign,
+    If,
+    For,
+    While
 } = require("./ast-types");
 
 class Env {
@@ -22,14 +25,18 @@ class Env {
     }
 
     get(key) {
-        for (let i = this.envChain.length; i >= 0; i--) {
-            const val = this.envChain[key];
-            if (val) {
+        for (let i = this.envChain.length - 1; i >= 0; i--) {
+            const val = this.envChain[i][key];
+            if (val !== undefined) {
                 return val;
             }
         }
 
         return;
+    }
+
+    set(key, val) {
+        this.envChain[this.envChain.length - 1][key] = val;
     }
 }
 
@@ -40,8 +47,7 @@ const execute = (ast, env) => {
     }
 
     if (ast instanceof Expression) {
-        execute(ast.expr, env);
-        return null;
+        return execute(ast.expr, env);
     }
 
     if (ast instanceof Literal) {
@@ -64,7 +70,11 @@ const execute = (ast, env) => {
             STAR: (a, b) => a * b,
             SLASH: (a, b) => a / b,
             AND: (a, b) => Boolean(a) && Boolean(b),
-            OR: (a, b) => Boolean(a) || Boolean(b)
+            OR: (a, b) => Boolean(a) || Boolean(b),
+            LESS: (a, b) => a < b,
+            LESS_EQUAL: (a, b) => a <= b,
+            GREATER: (a, b) => a > b,
+            GREATER_EQUAL: (a, b) => a >= b
         };
 
         return operatorMap[ast.operator.type](
@@ -75,26 +85,28 @@ const execute = (ast, env) => {
 
     if (ast instanceof VarDecl) {
         if (ast.initializer) {
-            env[ast.name.lexeme] = execute(ast.initializer, env);
+            env.set(ast.name.lexeme, execute(ast.initializer, env));
         } else {
-            env[ast.name.lexeme] = "nil";
+            env.set(ast.name.lexeme, "nil");
         }
 
         return null;
     }
 
     if (ast instanceof VarExpr) {
-        const value = env[ast.identifier.lexeme];
+        const value = env.get(ast.identifier.lexeme);
         if (value !== undefined) {
             return value;
         }
+
         throw new Error("Accessed undeclared variable");
     }
 
     if (ast instanceof Assign) {
         const lexeme = ast.name.lexeme;
-        if (env[lexeme]) {
-            env[lexeme] = execute(ast.value, env);
+
+        if (env.get(lexeme) !== undefined) {
+            env.set(lexeme, execute(ast.value, env));
             return;
         }
 
@@ -105,6 +117,30 @@ const execute = (ast, env) => {
         const subEnv = env.nextEnv();
 
         ast.declarations.forEach(d => execute(d, subEnv));
+    }
+
+    if (ast instanceof If) {
+        if (execute(ast.condition, env)) {
+            execute(ast.thenBranch, env);
+        } else {
+            execute(ast.elseBranch, env);
+        }
+    }
+
+    if (ast instanceof For) {
+        execute(ast.initializer, env);
+
+        while (execute(ast.conditional, env)) {
+            execute(ast.block, env);
+            execute(ast.iterator, env);
+        }
+    }
+
+    if (ast instanceof While) {
+        const bodyScope = env.nextEnv();
+        while (execute(ast.conditional, bodyScope)) {
+            ast.declarations.forEach(d => execute(d, bodyScope));
+        }
     }
 };
 
