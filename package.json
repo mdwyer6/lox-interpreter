@@ -4,7 +4,8 @@
   "description": "",
   "main": "interpreter.js",
   "scripts": {
-    "test": "mocha ./tests/tests.js"
+    "test": "mocha ./tests/tests.js",
+    "program-size": "wc -l src/*.js | awk 'END {print $1}'"
   },
   "author": "Michael Dwyer",
   "license": "ISC",
