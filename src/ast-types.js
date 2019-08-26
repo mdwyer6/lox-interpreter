@@ -91,10 +91,10 @@ class For extends Stmt {
 }
 
 class While extends Stmt {
-    constructor(conditional, declarations) {
+    constructor(conditional, block) {
         super();
         this.conditional = conditional;
-        this.declarations = declarations;
+        this.block = block;
     }
 }
 

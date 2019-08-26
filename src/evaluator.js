@@ -38,6 +38,18 @@ class Env {
     set(key, val) {
         this.envChain[this.envChain.length - 1][key] = val;
     }
+
+    reassign(key, newVal) {
+        for (let i = this.envChain.length - 1; i >= 0; i--) {
+            const oldVal = this.envChain[i][key];
+            if (oldVal !== undefined) {
+                this.envChain[i][key] = newVal;
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
 
 const execute = (ast, env) => {
@@ -105,8 +117,9 @@ const execute = (ast, env) => {
     if (ast instanceof Assign) {
         const lexeme = ast.name.lexeme;
 
-        if (env.get(lexeme) !== undefined) {
-            env.set(lexeme, execute(ast.value, env));
+        const successful = env.reassign(lexeme, execute(ast.value, env));
+
+        if (successful) {
             return;
         }
 
@@ -137,9 +150,8 @@ const execute = (ast, env) => {
     }
 
     if (ast instanceof While) {
-        const bodyScope = env.nextEnv();
-        while (execute(ast.conditional, bodyScope)) {
-            ast.declarations.forEach(d => execute(d, bodyScope));
+        while (execute(ast.conditional, env)) {
+            execute(ast.block, env);
         }
     }
 };

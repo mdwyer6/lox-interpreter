@@ -165,14 +165,9 @@ const parse = tokens => {
         const conditional = expression();
 
         consume("LEFT_BRACE", "expected block after for loop construct");
-        let declarationsInBlock = [];
+        const block = blockStatement();
 
-        while (!match("RIGHT_BRACE") && current < tokens.length) {
-            let decl = declaration();
-            declarationsInBlock.push(decl);
-        }
-
-        return new While(conditional, declarationsInBlock);
+        return new While(conditional, block);
     };
 
     const exprStatement = () => {
